@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.fftpack import dctn, idctn
 
 # ============ ETAPE 1 : Lire l'image ============
-image = cv2.imread(r"C:\Users\ASUS\Desktop\projet smd\im2.jpeg.jfif", cv2.IMREAD_GRAYSCALE)
+image = cv2.imread(r"im2.jpeg.jfif", cv2.IMREAD_GRAYSCALE)
 print("Image shape:", image.shape)
 h, w = image.shape
 
@@ -104,4 +104,4 @@ plt.imshow(attacked_noise, cmap='gray')
 plt.title("Image attaquee")
 plt.axis("off")
 plt.tight_layout()
-plt.show()
+plt.savefig("result.png")
