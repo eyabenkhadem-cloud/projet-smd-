@@ -1,5 +1,5 @@
 @"
-name: CI/CD Pipeline
+name: CI/CD Pipeline v2
 on:
   push:
     branches:
