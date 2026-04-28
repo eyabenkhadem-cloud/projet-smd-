@@ -8,6 +8,8 @@ COPY *.whl ./
 
 RUN pip install --no-cache-dir *.whl 
 
+COPY im2.jpeg.jfif . 
+
 COPY . .
 
 CMD ["python", "watermarkproject.py"]
