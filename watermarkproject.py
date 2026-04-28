@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import dct, idct
 
-# ================== LOAD IMAGE ==================
+
 image = cv2.imread("im2.jpeg.jfif", cv2.IMREAD_GRAYSCALE)
 
 if image is None:
@@ -12,7 +12,7 @@ if image is None:
 print("Image shape:", image.shape)
 h, w = image.shape
 
-# ================== DCT ==================
+
 def apply_dct(image):
     image_float = image.astype(np.float32)
     dct_image = np.zeros_like(image_float)
@@ -24,7 +24,7 @@ def apply_dct(image):
 
     return dct_image
 
-# ================== IDCT ==================
+
 def apply_idct(dct_image):
     image_back = np.zeros_like(dct_image)
 
@@ -35,7 +35,7 @@ def apply_idct(dct_image):
 
     return np.clip(image_back, 0, 255).astype(np.uint8)
 
-# ================== WATERMARK EMBEDDING ==================
+
 def embed_watermark(dct_image, watermark, delta=25):
     dct_copy = dct_image.copy()
     k = 0
@@ -57,7 +57,6 @@ def embed_watermark(dct_image, watermark, delta=25):
 
     return dct_copy
 
-# ================== WATERMARK EXTRACTION ==================
 def extract_watermark(dct_image, watermark_size, delta=25):
     extracted = []
 
@@ -73,7 +72,6 @@ def extract_watermark(dct_image, watermark_size, delta=25):
 
     return np.array(extracted)
 
-# ================== ATTACKS ==================
 def attack_noise(image):
     noise = np.random.randn(*image.shape) * 10
     return np.clip(image + noise, 0, 255).astype(np.uint8)
@@ -82,7 +80,7 @@ def attack_jpeg(image, quality=50):
     _, encimg = cv2.imencode('.jpg', image, [cv2.IMWRITE_JPEG_QUALITY, quality])
     return cv2.imdecode(encimg, 0)
 
-# ================== METRICS ==================
+
 def calculate_psnr(original, watermarked):
     mse = np.mean((original.astype(np.float32) - watermarked.astype(np.float32)) ** 2)
     if mse == 0:
@@ -93,7 +91,7 @@ def calculate_ber(original_wm, extracted_wm):
     errors = np.sum(original_wm != extracted_wm)
     return errors / len(original_wm)
 
-# ================== MAIN ==================
+
 watermark = np.random.randint(0, 2, (h // 8) * (w // 8))
 
 dct_image = apply_dct(image)
@@ -119,7 +117,7 @@ ber_jpeg = calculate_ber(watermark, extracted_jpeg)
 print(f"BER apres bruit: {ber_noise:.4f}")
 print(f"BER apres JPEG: {ber_jpeg:.4f}")
 
-# ================== OUTPUT (DOCKER SAFE) ==================
+
 plt.figure(figsize=(12, 4))
 
 plt.subplot(1, 3, 1)
@@ -139,6 +137,6 @@ plt.axis("off")
 
 plt.tight_layout()
 
-# Docker-safe (no GUI)
+
 plt.savefig("result.png")
 print("Result saved as result.png")
