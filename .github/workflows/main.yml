@@ -47,4 +47,18 @@ jobs:
 
       - name: Push Docker image
         run: docker push eyadocker123/projet-smd:latest
- 
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'projet-smd-app'
+          images: 'eyadocker123/projet-smd:latest'
