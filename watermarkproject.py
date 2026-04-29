@@ -30,8 +30,7 @@ def embed_watermark(dct_image, watermark, delta=25):
     k = 0
     for i in range(1, dct_image.shape[0], 8):
         for j in range(1, dct_image.shape[1], 8):
-            if k >= len(watermark):
-                break
+            if k >= len(watermark): break
             coef = dct_copy[i, j]
             if watermark[k] == 0:
                 dct_copy[i, j] = delta * np.round(coef / delta)
@@ -44,11 +43,9 @@ def extract_watermark(dct_image, watermark_size, delta=25):
     extracted = []
     for i in range(1, dct_image.shape[0], 8):
         for j in range(1, dct_image.shape[1], 8):
-            if len(extracted) >= watermark_size:
-                break
+            if len(extracted) >= watermark_size: break
             coef = dct_image[i, j]
-            bit = 1 if (coef / delta) % 1 > 0.25 else 0
-            extracted.append(bit)
+            extracted.append(1 if (coef / delta) % 1 > 0.25 else 0)
     return np.array(extracted)
 
 def attack_noise(image):
@@ -61,63 +58,39 @@ def attack_jpeg(image, quality=50):
 
 def calculate_psnr(original, watermarked):
     mse = np.mean((original.astype(np.float32) - watermarked.astype(np.float32)) ** 2)
-    if mse == 0:
-        return 100
-    return 10 * np.log10(255**2 / mse)
+    return 100 if mse == 0 else 10 * np.log10(255**2 / mse)
 
 def calculate_ber(original_wm, extracted_wm):
     return np.sum(original_wm != extracted_wm) / len(original_wm)
-
 
 @app.route('/')
 def home():
     image = cv2.imread("im2.jpeg.jfif", cv2.IMREAD_GRAYSCALE)
     if image is None:
         return "Error: image not found", 500
-
     h, w = image.shape
     watermark = np.random.randint(0, 2, (h // 8) * (w // 8))
-
     dct_image = apply_dct(image)
     dct_watermarked = embed_watermark(dct_image, watermark)
     watermarked_image = apply_idct(dct_watermarked)
-
     psnr_value = calculate_psnr(image, watermarked_image)
-
     attacked_noise = attack_noise(watermarked_image)
     attacked_jpeg = attack_jpeg(watermarked_image)
-
     ber_noise = calculate_ber(watermark, extract_watermark(apply_dct(attacked_noise), len(watermark)))
     ber_jpeg = calculate_ber(watermark, extract_watermark(apply_dct(attacked_jpeg), len(watermark)))
-
     plt.figure(figsize=(12, 4))
-    plt.subplot(1, 3, 1)
-    plt.imshow(image, cmap='gray')
-    plt.title("Original")
-    plt.axis("off")
-    plt.subplot(1, 3, 2)
-    plt.imshow(watermarked_image, cmap='gray')
-    plt.title("Watermarked")
-    plt.axis("off")
-    plt.subplot(1, 3, 3)
-    plt.imshow(attacked_noise, cmap='gray')
-    plt.title("Noisy Attack")
-    plt.axis("off")
+    plt.subplot(1,3,1); plt.imshow(image, cmap='gray'); plt.title("Original"); plt.axis("off")
+    plt.subplot(1,3,2); plt.imshow(watermarked_image, cmap='gray'); plt.title("Watermarked"); plt.axis("off")
+    plt.subplot(1,3,3); plt.imshow(attacked_noise, cmap='gray'); plt.title("Noisy Attack"); plt.axis("off")
     plt.tight_layout()
     plt.savefig("result.png")
-
+    plt.close()
     return f"""
     <h2>Watermark Results</h2>
-    <p>PSNR: {psnr_value:.2f} dB</p>
-    <p>BER after noise: {ber_noise:.4f}</p>
-    <p>BER after JPEG: {ber_jpeg:.4f}</p>
-    <img src="/result" style="max-width:100%">
+    <p><b>PSNR:</b> {psnr_value:.2f} dB</p>
+    <p><b>BER after noise:</b> {ber_noise:.4f}</p>
+    <p><b>BER after JPEG:</b> {ber_jpeg:.4f}</p>
     """
-
-@app.route('/result')
-def result():
-    return app.send_static_file('../result.png')
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
